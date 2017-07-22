@@ -36,17 +36,17 @@ I was having an issue where I was pulling external files as part of a gulp task.
 `gulp-download2` works by writing directly to disk, leveraging node's natural non-blocking I/O for better performance when downloading large files on a system with few resources. `gulp-download2` also uses `hyperquest` to speed up parallel downloads, prevent connection pools from hanging, etc.
 
 #### `gulp-download` vs. `gulp-download2`
-In `gulp-download2` we saw an average increase of CPU utilization by 31%:
-[![cpu utilization](https://preview.ibb.co/jmWC9k/dl2_cpu.png)](https://plot.ly/~djtthompson/20/)
+In `gulp-download2` we saw an average increase of CPU utilization by 31% whereas `gulp-download` writes the file content to a buffer and writes to the disk. This process is not as labor intensive as system calls:
 
-`gulp-download` writes the file content to a buffer and writes to the disk. This process is not as labor intensive as system calls, but there's a trade-off:
-[![dl_cpu](https://preview.ibb.co/fWqTh5/dl_cpu.png)](https://plot.ly/~djtthompson/22/)
+| `gulp-download2` | `gulp-download` |
+|       :---:      |       :---:     |
+| [![cpu utilization](https://preview.ibb.co/jmWC9k/dl2_cpu.png)](https://plot.ly/~djtthompson/20/) | [![dl_cpu](https://preview.ibb.co/fWqTh5/dl_cpu.png)](https://plot.ly/~djtthompson/22/) |
 
-Looking at the memory consumption in `gulp-download2` shows a max memory consumption of 262 MB:
-[![dl2_mem](https://preview.ibb.co/eexVvQ/dl2_mem.png)](https://plot.ly/~djtthompson/21/)
+Looking at the memory consumption in `gulp-download2` shows a max memory consumption of 262 MB whereas `gulp-download` buffers the content into memory leading to a steady increase:
 
-`gulp-download` buffers the content into memory leading to a steady increase:
-[![dl_mem](https://preview.ibb.co/hib125/dl_mem.png)](https://plot.ly/~djtthompson/23/)
+| `gulp-download2` | `gulp-download` |
+|       :---:      |       :---:     |
+| [![dl2_mem](https://preview.ibb.co/eexVvQ/dl2_mem.png)](https://plot.ly/~djtthompson/21/) | [![dl_mem](https://preview.ibb.co/hib125/dl_mem.png)](https://plot.ly/~djtthompson/23/)|
 
 Note: Profiling done with [Syrupy.py](https://github.com/jeetsukumaran/Syrupy) and `v8-profile`.
 
