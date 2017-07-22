@@ -33,16 +33,16 @@ Done
 
 #### `gulp-download` vs. `gulp-download2`
 In `gulp-download2` we saw an average increase of CPU utilization by an average of 31%:
-<iframe width="900" height="800" frameborder="0" scrolling="no" src="//plot.ly/~djtthompson/20.embed"></iframe>
+[![cpu utilization](https://preview.ibb.co/jmWC9k/dl2_cpu.png)](https://plot.ly/~djtthompson/20/)
 
 `gulp-download` writes the file content to a buffer and then drops all the content into a file in one go which explains the massive leap after the gulp task completes:
-<iframe width="900" height="800" frameborder="0" scrolling="no" src="//plot.ly/~djtthompson/22.embed"></iframe>
+[![dl_cpu](https://preview.ibb.co/fWqTh5/dl_cpu.png)](https://plot.ly/~djtthompson/22/)
 
 Looking at the memory consumption in `gulp-download2` shows a max memory consumption of 262 MB:
-<iframe width="900" height="800" frameborder="0" scrolling="no" src="//plot.ly/~djtthompson/21.embed"></iframe>
+[![dl2_mem](https://preview.ibb.co/eexVvQ/dl2_mem.png)](https://plot.ly/~djtthompson/21/)
 
 `gulp-download` buffers the content into memory causing the steady increase:
-<iframe width="900" height="800" frameborder="0" scrolling="no" src="//plot.ly/~djtthompson/23.embed"></iframe>
+[![dl_mem](https://preview.ibb.co/hib125/dl_mem.png)](https://plot.ly/~djtthompson/23/)
 
 Note: Profiling done with [Syrupy.py](https://github.com/jeetsukumaran/Syrupy) and `v8-profile`.
 
