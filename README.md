@@ -3,14 +3,16 @@ gulp-download-2
 
 _Heavily_ derived from [gulp-download-stream](https://github.com/michalc/gulp-download-stream) and [gulp-download](https://github.com/Metrime/gulp-download)
 
-A tiny [hyperquest](https://github.com/substack/hyperquest) gulp wrapper to download files over HTTP/HTTPS/FTP/FTPS and obeying redirects.
+A tiny [hyperquest](https://github.com/substack/hyperquest) gulp wrapper to download files over HTTP/HTTPS/FTP/FTPS + following redirects.
 
 ### Features
-* Progress Bar
-* Concurrent Downloads
+* ASCII progress bar
+* Concurrent downloads without busy-waiting
 * Redirect support (up to 10 hops)
-* `ftps?://` support
-* No buffering, write directly to disk
+* `ftp(s)://` support
+* Minimal buffering
+
+Here's a nice example:
 
 ```
 Downloading http://ipv4.download.thinkbroadband.com/512MB.zip...
@@ -29,19 +31,21 @@ Done
 ```
 
 ### Why?
-`gulp-download2` works by writing directly to disk, leveraging node's natural non-blocking I/O for better performance when downloading large files on a system with few resources.
+I was having an issue where I was pulling external files as part of a gulp task. I used `gulp-download`, but due to the plugin's inactivity and stream buffering, my machine was running out of memory/switching to swap. I decided to take the good parts of `gulp-download` and `gulp-download-stream` to create something current.
+
+`gulp-download2` works by writing directly to disk, leveraging node's natural non-blocking I/O for better performance when downloading large files on a system with few resources. `gulp-download2` also uses `hyperquest` to speed up parallel downloads, prevent connection pools from hanging, etc.
 
 #### `gulp-download` vs. `gulp-download2`
-In `gulp-download2` we saw an average increase of CPU utilization by an average of 31%:
+In `gulp-download2` we saw an average increase of CPU utilization by 31%:
 [![cpu utilization](https://preview.ibb.co/jmWC9k/dl2_cpu.png)](https://plot.ly/~djtthompson/20/)
 
-`gulp-download` writes the file content to a buffer and then drops all the content into a file in one go which explains the massive leap after the gulp task completes:
+`gulp-download` writes the file content to a buffer and writes to the disk. This process is not as labor intensive as system calls, but there's a trade-off:
 [![dl_cpu](https://preview.ibb.co/fWqTh5/dl_cpu.png)](https://plot.ly/~djtthompson/22/)
 
 Looking at the memory consumption in `gulp-download2` shows a max memory consumption of 262 MB:
 [![dl2_mem](https://preview.ibb.co/eexVvQ/dl2_mem.png)](https://plot.ly/~djtthompson/21/)
 
-`gulp-download` buffers the content into memory causing the steady increase:
+`gulp-download` buffers the content into memory leading to a steady increase:
 [![dl_mem](https://preview.ibb.co/hib125/dl_mem.png)](https://plot.ly/~djtthompson/23/)
 
 Note: Profiling done with [Syrupy.py](https://github.com/jeetsukumaran/Syrupy) and `v8-profile`.
