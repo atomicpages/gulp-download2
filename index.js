@@ -50,12 +50,33 @@ function download(url, options) {
                 emitError(`${col.magenta(res.statusCode)} returned from ${col.magenta(url.url)}`);
             }
 
-            const bar = new progress('  downloading [:bar] :rate/bps :percent :etas', {
-                complete: '=',
-                incomplete: '-',
-                width: 20,
-                total: parseInt(res.headers['content-length'], 10)
-            });
+            let bar = null;
+
+            if (res.headers['content-length']) {
+                bar = new progress('downloading [:bar] :rate/bps :percent :etas', {
+                    complete: '=',
+                    incomplete: '-',
+                    width: 20,
+                    total: parseInt(res.headers['content-length'], 10)
+                });
+            } else {
+                const numeral = require('numeral');
+                const singleLog = require('single-line-log').stdout;
+
+                bar = require('progress-stream')({
+                    time: 100,
+                    drain: true
+                });
+
+                bar.on('progress', prog => {
+                    singleLog(`
+Running: ${numeral(prog.runtime).format('00:00:00')} (${numeral(prog.transferred).format('0 b')})
+${numeral(prog.speed).format('0.00b')}/s ${Math.round(prog.percentage)}%
+                    `);
+                });
+
+                res.pipe(bar);
+            }
 
             res
                 .on('data', chunk => {
@@ -64,9 +85,11 @@ function download(url, options) {
                         firstLog = false;
                     }
 
-                    bar.tick(chunk.length);
+                    if (res.headers['content-length']) {
+                        bar.tick(chunk.length);
+                    }
                 })
-                .on('end', () => process.stdout.write(`${col.green('Done')}\n\n`));
+                .on('end', () => process.stdout.write(`\n${col.green('Done')}\n\n`));
         })
         .on('error', e => emitError(e))
         .pipe(file.contents); // write straight to disk

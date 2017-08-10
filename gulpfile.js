@@ -17,10 +17,14 @@ gulp.task('download', ['clean'], function () {
         },
         'https://i.imgur.com/c090ZXz.jpg',
         'ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE39nnn/GSE39549/soft/GSE39549_family.soft.gz', // with redirects
-        'http://ipv4.download.thinkbroadband.com/512MB.zip'
+        // 'http://ipv4.download.thinkbroadband.com/512MB.zip'
+        'https://github.com/v8/v8/archive/6.2.202.zip'
     ];
 
-    return download(files).pipe(gulp.dest('lol'));
+    return download(files, {
+        headers: {
+            'user-agent': 'testy test'
+        }}).pipe(gulp.dest('lol'));
 });
 
 gulp.task('lint', function () {

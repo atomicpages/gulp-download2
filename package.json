@@ -1,6 +1,6 @@
 {
     "name": "gulp-download2",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "main": "index.js",
     "license": "MIT",
     "engines": {
@@ -14,7 +14,10 @@
         "gulp-util": "^3.0.8",
         "hyperdirect": "^0.0.0",
         "hyperquest": "^2.1.2",
-        "progress": "^2.0.0"
+        "numeral": "^2.0.6",
+        "progress": "^2.0.0",
+        "progress-stream": "^2.0.0",
+        "single-line-log": "^1.1.2"
     },
     "devDependencies": {
         "chai": "^4.1.0",
