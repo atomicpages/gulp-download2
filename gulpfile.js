@@ -27,6 +27,16 @@ gulp.task('download', ['clean'], function () {
         }}).pipe(gulp.dest('lol'));
 });
 
+gulp.task('error', function () {
+    return download(['http://foo.com/test.txt'], {
+        errorCallback: function () {
+            console.log('Foo');
+            process.exit(1);
+        }
+    })
+    .pipe(gulp.dest('lol'));
+});
+
 gulp.task('lint', function () {
     return gulp.src('index.js')
         .pipe(eslint())

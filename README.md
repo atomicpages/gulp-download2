@@ -115,8 +115,34 @@ gulp.task('download', function () {
 	.pipe(gulp.dest('build'));
 });
 ```
-### Pass Options to Hyperquest
 
+### Handling Errors
+There are two different kinds of errors that can arise when we attempt to download from a remote resource:
+
+1. Hyperquest encounters an error with the stream
+    * Sends event object as a callback parameter
+2. Hyperquest returns an error status code (i.e. 404)
+    * `res.statusCode` is passed as a callback parameter
+
+In either case, we can handle these by providing an error callback in our gulp task:
+
+```js
+gulp.task('download', function () {
+    return download('http://foo.com/sample.txt', {
+        errorCallback: function (code) {
+            if (code === 404) {
+                console.error('Un oh, something bad happened!');
+                doSomethingElse();
+            } else if (code === 500) {
+                console.error('Fatal exception :(');
+                process.exit(1);
+            }
+        }
+    })
+});
+```
+
+### Pass Options to Hyperquest
 You can pass options to request as the second argument. For example, you can request using HTTP authentication:
 
 ```js

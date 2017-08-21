@@ -47,7 +47,11 @@ function download(url, options) {
     hyperdirect(url.url, options)
         .on('response', res => {
             if (res.statusCode >= 400) {
-                emitError(`${col.magenta(res.statusCode)} returned from ${col.magenta(url.url)}`);
+                if (typeof options.errorCallback === 'function') {
+                    options.errorCallback(res.statusCode);
+                } else {
+                    emitError(`${col.magenta(res.statusCode)} returned from ${col.magenta(url.url)}`);
+                }
             }
 
             let bar = null;
@@ -91,7 +95,13 @@ ${numeral(prog.speed).format('0.00b')}/s ${Math.round(prog.percentage)}%
                 })
                 .on('end', () => process.stdout.write(`\n${col.green('Done')}\n\n`));
         })
-        .on('error', e => emitError(e))
+        .on('error', function (e) {
+            if (typeof options.errorCallback === 'function') {
+                options.errorCallback(e);
+            } else {
+                emitError(e);
+            }
+        })
         .pipe(file.contents); // write straight to disk
 
     return file;
