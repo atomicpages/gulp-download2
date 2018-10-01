@@ -103,11 +103,11 @@ gulp.task('download', function () {
 	const files = [
 		{
             url: 'http://example.com/file.txt',
-            name: 'foo.txt'
+            file: 'foo.txt'
         },
         {
         	url: 'http://example.com/file2.csv',
-        	name: 'data.csv'
+        	file: 'data.csv'
         }
 	];
 
@@ -156,7 +156,7 @@ gulp.task('download', function () {
 
 	return download({
 	    url: 'http://example.com/file.txt',
-	    name: 'foo.txt'
+	    file: 'foo.txt'
 	}, config)
 	.pipe(gulp.dest('build'));
 });
