@@ -90,7 +90,7 @@ You can specify the local file names of files downloaded. You can do this for on
 gulp.task('download', function () {
 	return download({
 	    url: 'http://example.com/file.txt',
-	    name: 'foo.txt'
+	    file: 'foo.txt'
 	})
 	.pipe(gulp.dest('build'));
 });
