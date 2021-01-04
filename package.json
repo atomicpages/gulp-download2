@@ -13,6 +13,11 @@
         "test": "cd test && gulp download && node assert.js",
         "test:gulp4": "npm run pretest && cd test && ../node_modules/gulp4/bin/gulp.js download && node assert.js"
     },
+    "files": [
+        "index.js",
+        "index.d.ts",
+        "*.md"
+    ],
     "repository": "https://github.com/atomicpages/gulp-download2.git",
     "dependencies": {
         "ansi-colors": "^4.1.1",
