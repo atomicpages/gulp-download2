@@ -1,14 +1,15 @@
-/* eslint-disable dot-location */
-
 const stream = require('stream');
-const gutil = require('gulp-util');
+const ci = require('is-ci');
+
 const hyperquest = require('hyperquest');
 const hyperdirect = require('hyperdirect')(10, hyperquest);
 const progress = require('progress');
 
-const col = gutil.colors;
-const log = gutil.log;
-const Error = gutil.PluginError;
+// gutil standalone packages https://github.com/gulpjs/gulp-util
+const Vinyl = require('vinyl');
+const color = require('ansi-colors');
+const log = require('fancy-log');
+const Error = require('plugin-error');
 
 /**
  * Canonicalizes the URLs into an object of urls and file names.
@@ -17,12 +18,16 @@ const Error = gutil.PluginError;
  */
 function canonical(urls) {
     'use strict';
-    urls = Array.isArray(urls) ? urls : [urls];
+    const urlArray = Array.isArray(urls) ? urls : [urls];
 
-    return urls.map(url => typeof url === 'object' ? url : {
-        url: url,
-        file: url.split('/').pop()
-    });
+    return urlArray.map(url =>
+        typeof url === 'object'
+            ? url
+            : {
+                  url: url,
+                  file: url.split('/').pop(),
+              }
+    );
 }
 
 /**
@@ -35,14 +40,16 @@ function download(url, options) {
     'use strict';
     let firstLog = false;
 
-    const file = new gutil.File({
+    const file = new Vinyl({
         path: url.file,
-        contents: stream.PassThrough()
+        contents: stream.PassThrough(),
     });
+
+    const isCI = ci || options.ci;
 
     const emitError = e => file.contents.emit('error', new Error('gulp-download2', e));
 
-    log('Downloading', `${col.cyan(url.url)}...`);
+    log('Downloading', `${color.cyan(url.url)}...`);
 
     hyperdirect(url.url, options)
         .on('response', res => {
@@ -50,26 +57,28 @@ function download(url, options) {
                 if (typeof options.errorCallback === 'function') {
                     options.errorCallback(res.statusCode);
                 } else {
-                    emitError(`${col.magenta(res.statusCode)} returned from ${col.magenta(url.url)}`);
+                    emitError(
+                        `${color.magenta(res.statusCode)} returned from ${color.magenta(url.url)}`
+                    );
                 }
             }
 
             let bar = null;
 
-            if (res.headers['content-length']) {
+            if (!isCI && res.headers['content-length']) {
                 bar = new progress('downloading [:bar] :rate/bps :percent :etas', {
                     complete: '=',
                     incomplete: '-',
                     width: 20,
-                    total: parseInt(res.headers['content-length'], 10)
+                    total: parseInt(res.headers['content-length'], 10),
                 });
-            } else {
+            } else if (!isCI) {
                 const numeral = require('numeral');
                 const singleLog = require('single-line-log').stdout;
 
                 bar = require('progress-stream')({
                     time: 100,
-                    drain: true
+                    drain: true,
                 });
 
                 bar.on('progress', prog => {
@@ -82,18 +91,19 @@ ${numeral(prog.speed).format('0.00b')}/s ${Math.round(prog.percentage)}%
                 res.pipe(bar);
             }
 
-            res
-                .on('data', chunk => {
-                    if (firstLog) {
-                        process.stdout.write(`[${col.green('gulp')}] downloading ${col.cyan(url)}...\n`);
-                        firstLog = false;
-                    }
+            res.on('data', chunk => {
+                if (firstLog) {
+                    process.stdout.write(
+                        `[${color.green('gulp')}] downloading ${color.cyan(url)}...\n`
+                    );
 
-                    if (res.headers['content-length']) {
-                        bar.tick(chunk.length);
-                    }
-                })
-                .on('end', () => process.stdout.write(`\n${col.green('Done')}\n\n`));
+                    firstLog = false;
+                }
+
+                if (!isCI && res.headers['content-length']) {
+                    bar.tick(chunk.length);
+                }
+            }).on('end', () => process.stdout.write(`\n${color.green('Done')}\n\n`));
         })
         .on('error', function (e) {
             if (typeof options.errorCallback === 'function') {
@@ -107,7 +117,7 @@ ${numeral(prog.speed).format('0.00b')}/s ${Math.round(prog.percentage)}%
     return file;
 }
 
-module.exports = function (urls, options) {
+function main(urls, options) {
     'use strict';
 
     const urlObjects = canonical(urls);
@@ -128,6 +138,8 @@ module.exports = function (urls, options) {
             if (index === urlObjects.length) {
                 this.push(null);
             }
-        }
+        },
     });
-};
+}
+
+module.exports = main;

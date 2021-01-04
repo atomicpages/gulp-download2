@@ -1,6 +1,5 @@
 const gulp = require('gulp');
-const eslint = require('gulp-eslint');
-const download = require('./index');
+const download = require('../index');
 const del = require('del');
 // const dl = require('gulp-download');
 
@@ -13,18 +12,19 @@ gulp.task('download', ['clean'], function () {
     const files = [
         {
             url: url,
-            file: 'cool_cat.jpg'
+            file: 'cool_cat.jpg',
         },
         'https://i.imgur.com/c090ZXz.jpg',
         'ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE39nnn/GSE39549/soft/GSE39549_family.soft.gz', // with redirects
         // 'http://ipv4.download.thinkbroadband.com/512MB.zip'
-        'https://github.com/v8/v8/archive/6.2.202.zip'
+        // 'https://github.com/v8/v8/archive/6.2.202.zip',
     ];
 
     return download(files, {
         headers: {
-            'user-agent': 'testy test'
-        }}).pipe(gulp.dest('lol'));
+            'user-agent': 'testy test',
+        },
+    }).pipe(gulp.dest('lol'));
 });
 
 gulp.task('error', function () {
@@ -32,16 +32,8 @@ gulp.task('error', function () {
         errorCallback: function () {
             console.log('Foo');
             process.exit(1);
-        }
-    })
-    .pipe(gulp.dest('lol'));
-});
-
-gulp.task('lint', function () {
-    return gulp.src('index.js')
-        .pipe(eslint())
-        .pipe(eslint.format())
-        .pipe(eslint.failAfterError());
+        },
+    }).pipe(gulp.dest('lol'));
 });
 
 // gulp.task('dl', function () {
