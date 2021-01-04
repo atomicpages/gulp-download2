@@ -37,7 +37,7 @@ Other gulp download plugins buffer file contents in full before flushing to disk
 
 `gulp-download2` avoids unnecessary and connection pooling.
 
-### `gulp-download` vs. `gulp-download2`
+### Benchmarks: `gulp-download` vs. `gulp-download2`
 
 In `gulp-download2` we saw an average increase of CPU utilization by 31% whereas `gulp-download` writes the file content to a buffer and writes to the disk. This process is not as labor intensive as system calls:
 
@@ -53,14 +53,14 @@ Looking at the memory consumption in `gulp-download2` shows a max memory consump
 
 Note: Profiling done with [Syrupy.py](https://github.com/jeetsukumaran/Syrupy) and `v8-profile`.
 
-### Installation
+## Installation
 
 ```bash
 npm install gulp-download2 --save-dev # or to use yarn...
 yarn add gulp-download2 --dev
 ```
 
-### Basic Usage
+## Basic Usage
 
 ```js
 const gulp = require('gulp');
@@ -167,17 +167,9 @@ gulp.task('download', function () {
 
 See [hyperquest options](https://github.com/substack/hyperquest) for more details.
 
-### Error Handling
+## Options
 
-For any file, if node can't connect to the server, or the server returns a status code >= 400, then the Vinyl stream will emit an error and the containing gulp task will fail.
-
-```sh
-Message:
-    connect ECONNREFUSED 127.0.0.1:80
-Details:
-    code: ECONNREFUSED
-    errno: ECONNREFUSED
-    syscall: connect
-    address: 127.0.0.1
-    port: 80
-```
+| Option          | Type                     | Required | Description                                                      |
+| --------------- | ------------------------ | -------- | ---------------------------------------------------------------- |
+| `ci`            | `boolean`                | No       | Override default detection and suppress progress bars in CI mode |
+| `errorCallback` | `(code: number) => void` | No       | Customize errors during download failure                         |

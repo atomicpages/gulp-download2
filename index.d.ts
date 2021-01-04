@@ -6,8 +6,6 @@ export type Options = SecureContextOptions &
         ClientRequestArgs,
         'method' | 'agent' | 'auth' | 'timeout' | 'headers' | 'localAddress'
     > & {
-        followRedirects?: boolean;
-
         /**
          * Customize error handling when a resource cannot be downloaded.
          */
