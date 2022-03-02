@@ -1,5 +1,6 @@
 import { SecureContextOptions } from 'tls';
 import { ClientRequestArgs } from 'http';
+import { Stream } from 'stream';
 
 export type Options = SecureContextOptions &
     Pick<
@@ -17,4 +18,4 @@ export type Options = SecureContextOptions &
         ci?: boolean;
     };
 
-export default function main(urls: string | string[], options: Options): void;
+export default function main(urls: string | string[] | { url: string, file: string }, options: Options): Stream;
