@@ -18,4 +18,4 @@ export type Options = SecureContextOptions &
         ci?: boolean;
     };
 
-export default function main(urls: string | string[], options: Options): Stream;
+export default function main(urls: string | string[] | { url: string, file: string }, options: Options): Stream;
