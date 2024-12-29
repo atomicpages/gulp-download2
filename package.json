@@ -1,17 +1,17 @@
 {
     "name": "gulp-download2",
-    "version": "1.1.0",
+    "version": "2.0.0",
+    "type": "module",
     "main": "index.js",
     "types": "index.d.ts",
     "license": "MIT",
     "engines": {
-        "node": ">= 4.0.0"
+        "node": ">= 23.0.0"
     },
     "scripts": {
         "lint": "eslint '*.js'",
         "pretest": "rm -rf test/lol",
-        "test": "cd test && gulp download && node assert.js",
-        "test:gulp4": "npm run pretest && cd test && ../node_modules/gulp4/bin/gulp.js download && node assert.js"
+        "test": "cd test && gulp download && node assert.js"
     },
     "files": [
         "index.js",
@@ -20,39 +20,21 @@
     ],
     "repository": "https://github.com/atomicpages/gulp-download2.git",
     "dependencies": {
-        "ansi-colors": "^4.1.1",
-        "fancy-log": "^1.3.3",
+        "ansi-colors": "^4.1.3",
+        "fancy-log": "^2.0.0",
         "hyperdirect": "^0.0.0",
-        "hyperquest": "^2.1.2",
-        "is-ci": "^2.0.0",
+        "hyperquest": "^2.1.3",
+        "is-ci": "^4.1.0",
         "numeral": "^2.0.6",
-        "plugin-error": "^1.0.1",
-        "progress": "^2.0.0",
+        "plugin-error": "^2.0.1",
+        "progress": "^2.0.3",
         "progress-stream": "^2.0.0",
         "single-line-log": "^1.1.2",
-        "vinyl": "^2.2.1"
+        "vinyl": "^3.0.0"
     },
     "devDependencies": {
-        "@djthoms/eslint-config": "^4.0.0",
-        "@djthoms/prettier-config": "^3.0.0",
-        "@types/node": "^14.14.19",
-        "del": "^6.0.0",
-        "eslint": "^7.17.0",
-        "gulp": "^3.9.1",
-        "gulp4": "npm:gulp@^4.0.2",
-        "prettier": "^2.2.1"
-    },
-    "prettier": "@djthoms/prettier-config",
-    "eslintConfig": {
-        "env": {
-            "node": true,
-            "es6": true
-        },
-        "parserOptions": {
-            "ecmaVersion": 2015
-        },
-        "extends": [
-            "@djthoms/eslint-config"
-        ]
+        "@types/node": "^22.10.2",
+        "eslint": "^9.17.0",
+        "gulp": "^5.0.0"
     }
 }

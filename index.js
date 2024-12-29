@@ -1,15 +1,14 @@
-const stream = require('stream');
-const ci = require('is-ci');
+import { PassThrough, Readable } from 'stream';
+import ci from 'is-ci';
+import hyperquest from 'hyperquest';
+import hyperdirect from 'hyperdirect';
+import progress from 'progress';
+import Vinyl from 'vinyl';
+import color from 'ansi-colors';
+import log from 'fancy-log';
+import PluginError from 'plugin-error';
 
-const hyperquest = require('hyperquest');
-const hyperdirect = require('hyperdirect')(10, hyperquest);
-const progress = require('progress');
-
-// gutil standalone packages https://github.com/gulpjs/gulp-util
-const Vinyl = require('vinyl');
-const color = require('ansi-colors');
-const log = require('fancy-log');
-const Error = require('plugin-error');
+const hyperdirectInstance = hyperdirect(10, hyperquest);
 
 /**
  * Canonicalizes the URLs into an object of urls and file names.
@@ -17,17 +16,16 @@ const Error = require('plugin-error');
  * @returns {Object[]}
  */
 function canonical(urls) {
-    'use strict';
-    const urlArray = Array.isArray(urls) ? urls : [urls];
+	'use strict';
 
-    return urlArray.map(url =>
-        typeof url === 'object'
-            ? url
-            : {
-                  url: url,
-                  file: url.split('/').pop(),
-              }
-    );
+	const urlArray = Array.isArray(urls) ? urls : [urls];
+
+	return urlArray.map(url =>
+		typeof url === 'object' ? url : {
+			url: url,
+			file: url.split('/').pop(),
+		}
+	);
 }
 
 /**
@@ -37,109 +35,110 @@ function canonical(urls) {
  * @returns {stream}
  */
 function download(url, options) {
-    'use strict';
-    let firstLog = false;
+	'use strict';
 
-    const file = new Vinyl({
-        path: url.file,
-        contents: stream.PassThrough(),
-    });
+	let firstLog = false;
 
-    const isCI = ci || options.ci;
+	const file = new Vinyl({
+		path: url.file,
+		contents: new PassThrough(),
+	});
 
-    const emitError = e => file.contents.emit('error', new Error('gulp-download2', e));
+	const isCI = ci || options.ci;
 
-    log('Downloading', `${color.cyan(url.url)}...`);
+	const emitError = e => file.contents.emit('error', new PluginError('gulp-download2', e));
 
-    hyperdirect(url.url, options)
-        .on('response', res => {
-            if (res.statusCode >= 400) {
-                if (typeof options.errorCallback === 'function') {
-                    options.errorCallback(res.statusCode);
-                } else {
-                    emitError(
-                        `${color.magenta(res.statusCode)} returned from ${color.magenta(url.url)}`
-                    );
-                }
-            }
+	log('Downloading', `${color.cyan(url.url)}...`);
 
-            let bar = null;
+	hyperdirectInstance(url.url, options)
+		.on('response', res => {
+			if (res.statusCode >= 400) {
+				if (typeof options.errorCallback === 'function') {
+					options.errorCallback(res.statusCode);
+				} else {
+					emitError(
+						`${color.magenta(res.statusCode)} returned from ${color.magenta(url.url)}`
+					);
+				}
+			}
 
-            if (!isCI && res.headers['content-length']) {
-                bar = new progress('downloading [:bar] :rate/bps :percent :etas', {
-                    complete: '=',
-                    incomplete: '-',
-                    width: 20,
-                    total: parseInt(res.headers['content-length'], 10),
-                });
-            } else if (!isCI) {
-                const numeral = require('numeral');
-                const singleLog = require('single-line-log').stdout;
+			let bar = null;
 
-                bar = require('progress-stream')({
-                    time: 100,
-                    drain: true,
-                });
+			if (!isCI && res.headers['content-length']) {
+				bar = new progress('downloading [:bar] :rate/bps :percent :etas', {
+					complete: '=',
+					incomplete: '-',
+					width: 20,
+					total: parseInt(res.headers['content-length'], 10),
+				});
+			} else if (!isCI) {
+				const numeral = require('numeral');
+				const singleLog = require('single-line-log').stdout;
 
-                bar.on('progress', prog => {
-                    singleLog(`
-Running: ${numeral(prog.runtime).format('00:00:00')} (${numeral(prog.transferred).format('0 b')})
-${numeral(prog.speed).format('0.00b')}/s ${Math.round(prog.percentage)}%
-                    `);
-                });
+				bar = require('progress-stream')({
+					time: 100,
+					drain: true,
+				});
 
-                res.pipe(bar);
-            }
+				bar.on('progress', prog => {
+					singleLog([
+						`Running: ${numeral(prog.runtime).format('00:00:00')} (${numeral(prog.transferred).format('0 b')})`,
+						`${numeral(prog.speed).format('0.00b')}/s ${Math.round(prog.percentage)}%`
+					].join(' '));
+				});
 
-            res.on('data', chunk => {
-                if (firstLog) {
-                    process.stdout.write(
-                        `[${color.green('gulp')}] downloading ${color.cyan(url)}...\n`
-                    );
+				res.pipe(bar);
+			}
 
-                    firstLog = false;
-                }
+			res.on('data', chunk => {
+				if (firstLog) {
+					process.stdout.write(
+						`[${color.green('gulp')}] downloading ${color.cyan(url)}...\n`
+					);
 
-                if (!isCI && res.headers['content-length']) {
-                    bar.tick(chunk.length);
-                }
-            }).on('end', () => process.stdout.write(`\n${color.green('Done')}\n\n`));
-        })
-        .on('error', function (e) {
-            if (typeof options.errorCallback === 'function') {
-                options.errorCallback(e);
-            } else {
-                emitError(e);
-            }
-        })
-        .pipe(file.contents); // write straight to disk
+					firstLog = false;
+				}
 
-    return file;
+				if (!isCI && res.headers['content-length']) {
+					bar.tick(chunk.length);
+				}
+			}).on('end', () => process.stdout.write(`\n${color.green('Done')}\n\n`));
+		})
+		.on('error', function (e) {
+			if (typeof options.errorCallback === 'function') {
+				options.errorCallback(e);
+			} else {
+				emitError(e);
+			}
+		})
+		.pipe(file.contents); // write straight to disk
+
+	return file;
 }
 
 function main(urls, options) {
-    'use strict';
+	'use strict';
 
-    const urlObjects = canonical(urls);
-    options = options || {};
+	const urlObjects = canonical(urls);
+	options = options || {};
 
-    let index = 0;
+	let index = 0;
 
-    return stream.Readable({
-        objectMode: true,
-        read: function (size) {
-            let i = 0;
-            let more = true;
+	return new Readable({
+		objectMode: true,
+		read: function (size) {
+			let i = 0;
+			let more = true;
 
-            while (index < urlObjects.length && i++ < size && more) {
-                more = this.push(download(urlObjects[index++], options));
-            }
+			while (index < urlObjects.length && i++ < size && more) {
+				more = this.push(download(urlObjects[index++], options));
+			}
 
-            if (index === urlObjects.length) {
-                this.push(null);
-            }
-        },
-    });
+			if (index === urlObjects.length) {
+				this.push(null);
+			}
+		},
+	});
 }
 
-module.exports = main;
+export default main;
